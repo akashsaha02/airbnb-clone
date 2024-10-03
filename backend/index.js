@@ -39,7 +39,8 @@ app.use(cors({
     origin: [
         'http://localhost:5173', // Local development
         'https://airbnb-clone-client-nine.vercel.app/'
-    ]
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 }));
 
 // Configure Cloudinary with your credentials
