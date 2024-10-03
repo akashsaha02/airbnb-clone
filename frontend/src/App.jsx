@@ -15,7 +15,7 @@ import SingleBookingPage from './pages/SingleBookingPage'
 
 
 // axios.defaults.baseURL = 'http://localhost:3000'
-axios.defaults.baseURL = 'https://airbnb-clone-mu-lemon-16.vercel.app/'
+axios.defaults.baseURL = 'https://airbnb-clone-mu-lemon-16.vercel.app'
 axios.defaults.withCredentials = true
 
 function App() {
