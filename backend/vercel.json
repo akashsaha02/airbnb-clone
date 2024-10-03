@@ -11,11 +11,5 @@
             "src": "/(.*)",
             "dest": "/index.js"
         }
-    ],
-    "cache": {
-        "edge": {
-            "maxAge": 60,
-            "staleWhileRevalidate": 30
-        }
-    }
+    ]
 }
