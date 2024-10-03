@@ -31,16 +31,8 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure 'uploads' directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
-}
 
-// Serve static files from the 'uploads' directory
-app.use('/uploads', express.static(uploadsDir));
 
-// Allow cross-origin requests
 // Allow cross-origin requests
 app.use(cors({
     credentials: true,
@@ -132,24 +124,26 @@ app.post('/logout', (req, res) => {
 
 // --------------- Upload Photo --------------------
 
+
+// Configure Multer to use memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Ensure 'uploads' directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+}
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(uploadsDir));
+
 // upload by link
 app.post('/upload-by-link', async (req, res) => {
     // Get the image link from the request body
     const { link } = req.body;
     const newName = 'photo' + Date.now() + '.jpg';      // Generate a unique name for the image
     const destPath = path.join(uploadsDir, newName);    // Path to save the image
-
-    // try {
-    //     await imageDownloader.image({
-    //         url: link,
-    //         dest: destPath
-    //     });
-    //     res.json(newName);
-    // } catch (error) {
-    //     console.error('Image download failed:', error);
-    //     res.status(500).json({ success: false, message: 'Image download failed', error: error.message });
-    // }
-
     try {
         // Download the image
         await imageDownloader.image({
@@ -175,20 +169,6 @@ app.post('/upload-by-link', async (req, res) => {
 
 const photosMiddleware = multer({ dest: 'uploads' });
 
-// upload by file
-
-// app.post('/upload', photosMiddleware.array('photos', 100), (req, res) => {
-//     const uploadedFiles = [];
-//     for (let i = 0; i < req.files.length; i++) {
-//         const { path, originalname } = req.files[i];
-//         const parts = originalname.split('.');
-//         const ext = parts[parts.length - 1];
-//         const newPath = path + '.' + ext;
-//         fs.renameSync(path, newPath)
-//         uploadedFiles.push(newPath.replace('uploads\\', ''));
-//     }
-//     res.json(uploadedFiles);
-// });
 
 app.post('/upload', photosMiddleware.array('photos', 100), async (req, res) => {
     const uploadedFiles = [];
@@ -199,7 +179,8 @@ app.post('/upload', photosMiddleware.array('photos', 100), async (req, res) => {
                 folder: 'uploads'
             });
             uploadedFiles.push(result.secure_url);
-            // Optionally, delete the local file after upload
+            // Delete the local file after upload   
+            
             fs.unlinkSync(path);
         } catch (error) {
             console.error('Cloudinary upload failed:', error);
