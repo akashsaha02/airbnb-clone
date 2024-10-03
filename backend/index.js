@@ -41,10 +41,13 @@ if (!fs.existsSync(uploadsDir)) {
 app.use('/uploads', express.static(uploadsDir));
 
 // Allow cross-origin requests
+// Allow cross-origin requests
 app.use(cors({
     credentials: true,
-    // origin: 'http://localhost:5173'
-    origin: 'https://airbnb-clone-frontend-ten.vercel.app/'
+    origin: [
+        'http://localhost:5173', // Local development
+        'https://airbnb-clone-frontend-ten.vercel.app' // Deployed frontend on Vercel
+    ]
 }));
 
 // Configure Cloudinary with your credentials
@@ -302,5 +305,3 @@ app.get('/bookings', async (req, res) => {
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });
-
-// mongodb+srv://akashsaha:akashsaha1313@cluster0.7twfqyh.mongodb.net/

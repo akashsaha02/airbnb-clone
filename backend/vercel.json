@@ -9,7 +9,7 @@
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "https://airbnb-clone-frontend-j3dnwcta6-akash-sahas-projects-b936d8b9.vercel.app/"
+            "dest": "/"
         }
     ]
 
