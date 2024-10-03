@@ -38,7 +38,7 @@ app.use(cors({
     credentials: true,
     origin: [
         'http://localhost:5173', // Local development
-        'https://airbnb-clone-frontend-ten.vercel.app' // Deployed frontend on Vercel
+        'https://airbnb-clone-client-nine.vercel.app/'
     ]
 }));
 
