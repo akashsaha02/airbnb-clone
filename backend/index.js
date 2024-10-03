@@ -129,66 +129,119 @@ app.post('/logout', (req, res) => {
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Ensure 'uploads' directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
-}
+// // Ensure 'uploads' directory exists
+// const uploadsDir = path.join(__dirname, 'uploads');
+// if (!fs.existsSync(uploadsDir)) {
+//     fs.mkdirSync(uploadsDir);
+// }
 
-// Serve static files from the 'uploads' directory
-app.use('/uploads', express.static(uploadsDir));
+// // Serve static files from the 'uploads' directory
+// app.use('/uploads', express.static(uploadsDir));
 
 // upload by link
+// app.post('/upload-by-link', async (req, res) => {
+//     // Get the image link from the request body
+//     const { link } = req.body;
+//     const newName = 'photo' + Date.now() + '.jpg';      // Generate a unique name for the image
+//     const destPath = path.join(uploadsDir, newName);    // Path to save the image
+//     try {
+//         // Download the image
+//         await imageDownloader.image({
+//             url: link,
+//             dest: destPath
+//         });
+
+//         // Upload the image to Cloudinary
+//         const result = await cloudinary.v2.uploader.upload(destPath, {
+//             folder: 'uploads'
+//         });
+
+//         // Delete the local file after upload
+//         fs.unlinkSync(destPath);
+
+//         // Return the Cloudinary URL
+//         res.json(result.secure_url);
+//     } catch (error) {
+//         console.error('Image download or upload failed:', error);
+//         res.status(500).json({ success: false, message: 'Image download or upload failed', error: error.message });
+//     }
+// });
+
+// const photosMiddleware = multer({ dest: 'uploads' });
+
+
+// app.post('/upload', photosMiddleware.array('photos', 100), async (req, res) => {
+//     const uploadedFiles = [];
+//     for (let i = 0; i < req.files.length; i++) {
+//         const { path } = req.files[i];
+//         try {
+//             const result = await cloudinary.v2.uploader.upload(path, {
+//                 folder: 'uploads'
+//             });
+//             uploadedFiles.push(result.secure_url);
+//             // Delete the local file after upload   
+            
+//             fs.unlinkSync(path);
+//         } catch (error) {
+//             console.error('Cloudinary upload failed:', error);
+//             res.status(500).json({ success: false, message: 'Cloudinary upload failed', error: error.message });
+//             return;
+//         }
+//     }
+//     res.json(uploadedFiles);
+// });
+
+
+// Upload by link
 app.post('/upload-by-link', async (req, res) => {
-    // Get the image link from the request body
     const { link } = req.body;
-    const newName = 'photo' + Date.now() + '.jpg';      // Generate a unique name for the image
-    const destPath = path.join(uploadsDir, newName);    // Path to save the image
     try {
-        // Download the image
-        await imageDownloader.image({
+        // Download the image to a buffer
+        const { buffer } = await imageDownloader.image({
             url: link,
-            dest: destPath
+            dest: '/tmp/temp.jpg' // Temporary path
         });
 
         // Upload the image to Cloudinary
-        const result = await cloudinary.v2.uploader.upload(destPath, {
-            folder: 'uploads'
-        });
-
-        // Delete the local file after upload
-        fs.unlinkSync(destPath);
-
-        // Return the Cloudinary URL
-        res.json(result.secure_url);
+        cloudinary.v2.uploader.upload_stream(
+            { folder: 'uploads' },
+            (error, result) => {
+                if (error) {
+                    throw error;
+                }
+                res.json(result.secure_url);
+            }
+        ).end(buffer);
     } catch (error) {
         console.error('Image download or upload failed:', error);
         res.status(500).json({ success: false, message: 'Image download or upload failed', error: error.message });
     }
 });
 
-const photosMiddleware = multer({ dest: 'uploads' });
-
-
-app.post('/upload', photosMiddleware.array('photos', 100), async (req, res) => {
+// Upload multiple photos
+app.post('/upload', upload.array('photos', 100), async (req, res) => {
     const uploadedFiles = [];
     for (let i = 0; i < req.files.length; i++) {
-        const { path } = req.files[i];
+        const file = req.files[i];
         try {
-            const result = await cloudinary.v2.uploader.upload(path, {
-                folder: 'uploads'
-            });
-            uploadedFiles.push(result.secure_url);
-            // Delete the local file after upload   
-            
-            fs.unlinkSync(path);
+            cloudinary.v2.uploader.upload_stream(
+                { folder: 'uploads' },
+                (error, result) => {
+                    if (error) {
+                        throw error;
+                    }
+                    uploadedFiles.push(result.secure_url);
+                    if (uploadedFiles.length === req.files.length) {
+                        res.json(uploadedFiles);
+                    }
+                }
+            ).end(file.buffer);
         } catch (error) {
             console.error('Cloudinary upload failed:', error);
             res.status(500).json({ success: false, message: 'Cloudinary upload failed', error: error.message });
             return;
         }
     }
-    res.json(uploadedFiles);
 });
 
 // --------------- Places --------------------
