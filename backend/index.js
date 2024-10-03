@@ -43,7 +43,8 @@ app.use('/uploads', express.static(uploadsDir));
 // Allow cross-origin requests
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:5173'
+    // origin: 'http://localhost:5173'
+    origin: 'https://airbnb-clone-frontend-ten.vercel.app/'
 }));
 
 // Configure Cloudinary with your credentials
